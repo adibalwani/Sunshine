@@ -1,5 +1,6 @@
 package com.example.android.sunshine;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -72,6 +74,16 @@ public class ForecastFragment extends Fragment {
 
         ListView listView = (ListView) v.findViewById(R.id.list_view_forecast);
         listView.setAdapter(mForecastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String forecast = mForecastAdapter.getItem(position);
+
+                Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
+                detailIntent.putExtra(Intent.EXTRA_TEXT, forecast);
+                startActivity(detailIntent);
+            }
+        });
 
         return v;
     }
@@ -184,7 +196,7 @@ public class ForecastFragment extends Fragment {
                 // to parse it.
                 return null;
 
-            } finally{
+            } finally {
 
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -220,8 +232,8 @@ public class ForecastFragment extends Fragment {
         }
 
         /* The date/time conversion code is going to be moved outside the asynctask later,
-                * so for convenience we're breaking it out into its own method now.
-                */
+         * so for convenience we're breaking it out into its own method now.
+         */
         private String getReadableDateString(long time){
             // Because the API returns a unix timestamp (measured in seconds),
             // it must be converted to milliseconds in order to be converted to valid date.
