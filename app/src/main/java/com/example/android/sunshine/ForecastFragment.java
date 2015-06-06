@@ -1,9 +1,11 @@
 package com.example.android.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.Log;
@@ -29,7 +31,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -44,6 +45,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
@@ -55,17 +62,7 @@ public class ForecastFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_main, container, false);
 
-        String[] data = {
-                "Today - Sunny - 88 / 63",
-                "Tomorrow - Foggy - 70 / 46",
-                "Weds - Cloudy - 72 / 63",
-                "Thurs - Rainy - 64 / 51",
-                "Fri - Foggy - 70 / 46",
-                "Sat - Sunny - 76 / 68",
-        };
-
-        /* WeekForecast Dummy Data */
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(data));
+        List<String> weekForecast = new ArrayList<String>();
 
         mForecastAdapter = new ArrayAdapter<String>(getActivity(),
                 R.layout.list_item_forecast,
@@ -103,11 +100,20 @@ public class ForecastFragment extends Fragment {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_refresh) {
-            new FetchWeatherTask().execute("94043");
+            updateWeather();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateWeather() {
+        // Handle to SharedPreference
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        // Fetch location value
+        String location = prefs.getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+        new FetchWeatherTask().execute(location);
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
@@ -319,6 +325,12 @@ public class ForecastFragment extends Fragment {
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
 
+                // Convert high and low to Imperical if asked for in settings
+                if (isImpericalEnabled()) {
+                    high = 1.8 * high + 32;
+                    low = 1.8 * low + 32;
+                }
+
                 highAndLow = formatHighLows(high, low);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
@@ -326,6 +338,18 @@ public class ForecastFragment extends Fragment {
             return resultStrs;
 
         }
+
+        // Checks if Imperical Unit is prefered in the temperature units settings
+        private boolean isImpericalEnabled() {
+            // Handle to SharedPreference
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            // Fetch location value
+            String temperatureUnit = prefs.getString(getString(R.string.pref_units_key),
+                    getString(R.string.pref_units_default));
+
+            return temperatureUnit.equals("Imperical") ? true : false;
+        }
+
     }
 }
 
