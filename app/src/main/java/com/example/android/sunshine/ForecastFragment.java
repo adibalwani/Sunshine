@@ -343,7 +343,7 @@ public class ForecastFragment extends Fragment {
         private boolean isImpericalEnabled() {
             // Handle to SharedPreference
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            // Fetch location value
+            // Fetch temperature value
             String temperatureUnit = prefs.getString(getString(R.string.pref_units_key),
                     getString(R.string.pref_units_default));
 

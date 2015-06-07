@@ -1,13 +1,19 @@
 package com.example.android.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
+
+    private final String LOG_TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +41,26 @@ public class MainActivity extends ActionBarActivity {
             // Start the settings activity
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
+            return true;
+        } else if (id == R.id.action_view_on_map) {
+            // Implicit Intent ACTION_VIEW for Map App
+            // Handle to SharedPreference
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            // Fetch location value
+            String location = prefs.getString(getString(R.string.pref_location_key),
+                    getString(R.string.pref_location_default));
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            Uri builtUri = Uri.parse("geo:0,0").buildUpon()
+                    .appendQueryParameter("q", location)
+                    .build();
+            intent.setData(builtUri);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                Log.d(LOG_TAG, "Couldn't call " + location);
+            }
+
             return true;
         }
 
